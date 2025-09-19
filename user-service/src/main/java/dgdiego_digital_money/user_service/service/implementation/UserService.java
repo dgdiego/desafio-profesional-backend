@@ -53,10 +53,10 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public RegistrationResponseDTO register (RegistrationRequestDTO registrationDto) throws BadRequestException {
+    public RegistrationResponseDTO register (RegistrationRequestDTO registrationDto) {
         //busco si ya existe un usuario por email y dni
         if(userRepository.findByEmailAndDni(registrationDto.getEmail(), registrationDto.getDni()).isPresent()) {
-            throw new BadRequestException("Usuario duplicado. No es posible registrar");
+            throw new IllegalArgumentException("Usuario duplicado. No es posible registrar");
         }
 
         //TODO validaciones

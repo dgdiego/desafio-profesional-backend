@@ -23,10 +23,22 @@ spring:
           #  - AddRequestHeader=X-Request-from, gateway
           #  - AddResponseHeader=X-Response-Red, Blue
           #  - StripPrefix=-1
+        - id: users-swagger
+          uri: lb://users-service
+          predicates:
+            - Path=/users/v3/api-docs, /users/swagger-ui/**, /users/v3/api-docs/**
+          filters:
+            - StripPrefix=1
         - id: users-service
           uri: lb://users-service
           predicates:
             - Path=/users/**
+        - id: auth-swagger
+          uri: lb://auth-service
+          predicates:
+            - Path=/auth/v3/api-docs, /auth/swagger-ui/**, /auth/v3/api-docs/**
+          filters:
+            - StripPrefix=1
         - id: auth-service
           uri: lb://auth-service
           #uri: http://localhost:8082

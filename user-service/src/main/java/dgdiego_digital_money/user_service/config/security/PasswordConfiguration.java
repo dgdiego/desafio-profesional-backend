@@ -1,4 +1,4 @@
-package dgdiego_digital_money.user_service.security;
+package dgdiego_digital_money.user_service.config.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

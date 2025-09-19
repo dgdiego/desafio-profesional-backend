@@ -1,5 +1,6 @@
 package dgdiego_digital_money.user_service.entity.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -23,6 +24,11 @@ public class RegistrationRequestDTO {
 
     @NotNull
     @Pattern(regexp = "^(?=.*[a-z])(?=.*?[0-9]).{8,}$")
+    @Schema(
+            //description = "Contraseña del usuario",
+            type = "string",
+            example = "MiUsuario123"
+    )
     private String password;
 
     @NotNull

@@ -27,7 +27,10 @@ public class JwtAuthenticationFilter implements GlobalFilter {
     private final JwtService jwtService;
     private static final List<String> EXCLUDED_PATHS = List.of(
             "/auth/login",
-            "/users/register"
+            "/users/register",
+            "/v3/api-docs",
+            "/swagger-ui",
+            "/swagger-ui/index.html"
     );
 
     public JwtAuthenticationFilter(JwtService jwtService) {
@@ -37,10 +40,10 @@ public class JwtAuthenticationFilter implements GlobalFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
-        log.info(path);
 
         // Si la ruta está en la lista de excluidas, sigue sin validar
-        if (EXCLUDED_PATHS.stream().anyMatch(path::equals)) {
+        if (EXCLUDED_PATHS.stream().anyMatch(path::startsWith)) {
+            log.info(path + " -> Está en lista de exlusión");
             return chain.filter(exchange);
         }
 
