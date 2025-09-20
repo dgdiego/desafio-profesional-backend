@@ -3,10 +3,12 @@ package dgdiego_digital_money.auth_service.entity.domian;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
-@Table(name = "expiredTokens")
+@Table(name = "expired_tokens")
 @Getter
 @Setter
 @Builder
