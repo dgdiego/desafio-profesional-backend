@@ -25,7 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 class AuthControllerIntegrationTest {
 
     @Autowired
