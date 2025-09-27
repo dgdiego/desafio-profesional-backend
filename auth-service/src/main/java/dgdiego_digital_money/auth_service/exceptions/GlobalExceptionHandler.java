@@ -88,7 +88,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(FeignException.class)
     public ResponseEntity<String> handleFeignStatusException(FeignException ex) {
-        log.error("Error Feign: {}", ex.getMessage());
+        log.error("Feign error: status={}, body={}", ex.status(), ex.contentUTF8(), ex);
 
         return ResponseEntity
                 .status(ex.status())

@@ -1,4 +1,4 @@
-package dgdiego_digital_money.user_service.config.security;
+package dgdiego_digital_money.account_service.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -11,11 +11,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class JwtService {

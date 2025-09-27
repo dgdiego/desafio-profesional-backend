@@ -1,4 +1,4 @@
-package dgdiego_digital_money.user_service.exceptions;
+package dgdiego_digital_money.account_service.exceptions;
 
 import feign.FeignException;
 import io.jsonwebtoken.ExpiredJwtException;

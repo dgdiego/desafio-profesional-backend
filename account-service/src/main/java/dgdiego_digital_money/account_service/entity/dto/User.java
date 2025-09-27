@@ -1,4 +1,4 @@
-package dgdiego_digital_money.auth_service.entity.dto;
+package dgdiego_digital_money.account_service.entity.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
@@ -6,8 +6,7 @@ import lombok.*;
 import java.util.List;
 
 @Builder
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)

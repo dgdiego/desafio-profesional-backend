@@ -1,28 +1,23 @@
 package dgdiego_digital_money.user_service.service.implementation;
 
-import com.netflix.discovery.converters.Auto;
 import dgdiego_digital_money.user_service.entity.domian.Rol;
 import dgdiego_digital_money.user_service.entity.domian.User;
 import dgdiego_digital_money.user_service.entity.dto.RegistrationRequestDTO;
 import dgdiego_digital_money.user_service.entity.dto.RegistrationResponseDTO;
 import dgdiego_digital_money.user_service.entity.dto.UserDto;
 import dgdiego_digital_money.user_service.exceptions.ResourceNotFoundException;
-import dgdiego_digital_money.user_service.repository.IRolRepository;
 import dgdiego_digital_money.user_service.repository.IUserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.Optional;
@@ -45,6 +40,12 @@ public class UserService {
     private AuthService authService;
 
     @Autowired
+    private AccountService accountService;
+
+    @Autowired
+    private PermissionService permissionService;
+
+    @Autowired
     PasswordEncoder passwordEncoder;
 
 
@@ -53,6 +54,7 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    @Transactional
     public RegistrationResponseDTO register (RegistrationRequestDTO registrationDto) {
         //busco si ya existe un usuario por email y dni
         if(userRepository.findByEmailAndDni(registrationDto.getEmail(), registrationDto.getDni()).isPresent()) {
@@ -77,6 +79,8 @@ public class UserService {
 
         userRepository.save(user);
 
+        accountService.create(user.getId());
+
         return mapToRegistrationResponseDto(user);
 
     }
@@ -91,6 +95,23 @@ public class UserService {
             return userSearched.get();
         } else {
             String message = "No se encontro el usuario con email " + email;
+            log.info(message);
+            throw new ResourceNotFoundException(message);
+        }
+
+    }
+
+    public User findById(Long id, Boolean withPassword){
+        permissionService.canAccess(id);
+        Optional<User> userSearched = userRepository.findById(id);
+        if (userSearched.isPresent()) {
+            User userResponse = userSearched.get();
+            if(!withPassword){
+                userResponse.setPassword(null);
+            }
+            return userResponse;
+        } else {
+            String message = "No se encontro el usuario con ID " + id;
             log.info(message);
             throw new ResourceNotFoundException(message);
         }

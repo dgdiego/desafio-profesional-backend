@@ -2,6 +2,7 @@ package dgdiego_digital_money.user_service.controller;
 
 import dgdiego_digital_money.user_service.entity.dto.RegistrationRequestDTO;
 import dgdiego_digital_money.user_service.entity.dto.RegistrationResponseDTO;
+import dgdiego_digital_money.user_service.entity.dto.UserDto;
 import dgdiego_digital_money.user_service.service.implementation.UserService;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -29,27 +31,15 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    /*@GetMapping(path = "/list")
-    public ResponseEntity<?> login() {
-        return ResponseEntity.ok(userService.listAll());
-    }*/
-
     @PostMapping(path = "/register")
     @Operation(summary = "Register", description = "Registrarse en la aplicación")
     public ResponseEntity<RegistrationResponseDTO> register(@Valid @RequestBody RegistrationRequestDTO registrationRequestDTO) {
-        //try{
-            return  ResponseEntity.ok(userService.register(registrationRequestDTO));
-        /*} catch (BadRequestException ex){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        }catch (Exception ex){
-            log.error("Registro incorrecto para el usuario: {}", registrationRequestDTO.getName() + " "+registrationRequestDTO.getLastname());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        }*/
+        return  ResponseEntity.ok(userService.register(registrationRequestDTO));
     }
 
     @PostMapping(path = "/login-lookup")
     @Hidden
-    public ResponseEntity<?> loginLookup(@RequestBody String email) {
+    public ResponseEntity<UserDto> loginLookup(@RequestBody String email) {
         return  ResponseEntity.ok(userService.mapToResponseDto(userService.findByEmail(email)));
     }
 
@@ -65,6 +55,11 @@ public class UserController {
     public ResponseEntity<?> logout() {
         userService.logout();
         return  ResponseEntity.ok().build();
+    }
+
+    @GetMapping(path = "/{id}")
+    public ResponseEntity<UserDto> findById(@PathVariable Long id) {
+        return  ResponseEntity.ok(userService.mapToResponseDto(userService.findById(id,false)));
     }
 
 }
