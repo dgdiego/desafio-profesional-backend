@@ -6,6 +6,7 @@ import dgdiego_digital_money.account_service.entity.domian.Transaction;
 import dgdiego_digital_money.account_service.entity.dto.CardCreateDto;
 import dgdiego_digital_money.account_service.entity.dto.CardDto;
 import dgdiego_digital_money.account_service.entity.dto.TransactionDto;
+import dgdiego_digital_money.account_service.exceptions.ResourceAlreadyExistsException;
 import dgdiego_digital_money.account_service.exceptions.ResourceNotFoundException;
 import dgdiego_digital_money.account_service.repository.IAccountRepository;
 import dgdiego_digital_money.account_service.repository.ICardRepository;
@@ -37,7 +38,7 @@ public class CardService {
 
         Optional<Card> existCard = cardRepository.findByNumber(cardDto.getNumber());
         if(existCard.isPresent()) {
-            throw new IllegalArgumentException("Ya existe una tarjeta con el número "+cardDto.getNumber());
+            throw new ResourceAlreadyExistsException("Ya existe una tarjeta con el número "+cardDto.getNumber());
         }
 
         Card newCard = Card.builder()

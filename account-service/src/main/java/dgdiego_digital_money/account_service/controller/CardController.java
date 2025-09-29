@@ -8,9 +8,12 @@ import dgdiego_digital_money.account_service.entity.dto.TransactionDto;
 import dgdiego_digital_money.account_service.service.implementation.CardService;
 import dgdiego_digital_money.account_service.service.implementation.TransactionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,8 +30,8 @@ public class CardController {
     private CardService cardService;
 
     @PostMapping
-    public ResponseEntity<CardDto> create(@RequestBody CardCreateDto cardData, @PathVariable Long accountId) {
-        return ResponseEntity.ok(cardService.mapToResponseDto(cardService.create(cardData, accountId)));
+    public ResponseEntity<CardDto> create(@Valid @RequestBody CardCreateDto cardData, @PathVariable Long accountId) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(cardService.mapToResponseDto(cardService.create(cardData, accountId)));
     }
 
     @GetMapping
