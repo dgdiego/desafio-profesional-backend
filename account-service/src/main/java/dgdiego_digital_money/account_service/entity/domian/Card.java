@@ -29,8 +29,10 @@ public class Card {
 
     // **************   ACCOUNT   ********************
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id")
+    @JoinColumn(name = "account_id", nullable = false)
     @JsonIgnore
     private Account account;
 
+    @Column(name = "account_id", insertable = false, updatable = false)
+    private Long accountId;
 }
