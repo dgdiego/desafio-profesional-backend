@@ -25,6 +25,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/accounts")
 @Tag(name = "Cuentas", description = "Operaciones relacionadas con administración de cuentas")
+
 public class AccountController {
     @Autowired
     private AccountService accountService;
@@ -34,11 +35,20 @@ public class AccountController {
 
     @PostMapping(path = "/create")
     @Operation(summary = "Crear cuenta", description = "Crear cuenta en la aplicación")
+    @Hidden
     public ResponseEntity<Long> register(@RequestBody Long userId) {
         return  ResponseEntity.ok(accountService.create(userId));
     }
 
     @GetMapping(path = "/{id}")
+    @Operation(summary = "Obtener", description = "Obtener datos de la cuenta")
+    @Parameter(
+            name = "Authorization",
+            in = ParameterIn.HEADER,
+            required = true,
+            description = "JWT Bearer token",
+            schema = @Schema(type = "string", example = "Bearer eyJhbGciOiJIUzI1NiJ9...")
+    )
     public ResponseEntity<Map<String,Double>> balanceDashboard(@PathVariable Long id) {
         Double balance = accountService.getBalance(id);
 

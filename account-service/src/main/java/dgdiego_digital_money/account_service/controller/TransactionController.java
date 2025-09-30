@@ -5,6 +5,9 @@ import dgdiego_digital_money.account_service.entity.dto.TransactionDto;
 import dgdiego_digital_money.account_service.service.implementation.AccountService;
 import dgdiego_digital_money.account_service.service.implementation.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +29,14 @@ public class TransactionController {
     private TransactionService transactionService;
 
     @GetMapping
+    @Operation(summary = "Transacciones Dashboard", description = "Obtener las últimas 5 transacciones de la cuenta")
+    @Parameter(
+            name = "Authorization",
+            in = ParameterIn.HEADER,
+            required = true,
+            description = "JWT Bearer token",
+            schema = @Schema(type = "string", example = "Bearer eyJhbGciOiJIUzI1NiJ9...")
+    )
     public ResponseEntity<List<TransactionDto>> transactionsDashboard(@PathVariable Long accountId) {
         List<Transaction> list = transactionService.transactionsDashboard(accountId);
         List<TransactionDto> listDto = new ArrayList<>();
