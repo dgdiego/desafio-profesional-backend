@@ -14,4 +14,6 @@ import java.util.Optional;
 @Repository
 public interface ITransactionRepository extends JpaRepository<Transaction,Long> {
     List<Transaction> findByAccountIdOrderByDateTimeDesc(Long accountId, Pageable pageable);
+
+    List<Transaction> findByAccountIdOrderByDateTimeDesc(Long accountId);
 }

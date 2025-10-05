@@ -47,4 +47,38 @@ public class TransactionController {
 
         return ResponseEntity.ok(listDto);
     }
+
+    @GetMapping("/activity")
+    @Operation(summary = "Actividad de transacciones", description = "Buscar todas las transacciones de la cuenta")
+    @Parameter(
+            name = "Authorization",
+            in = ParameterIn.HEADER,
+            required = true,
+            description = "JWT Bearer token",
+            schema = @Schema(type = "string", example = "Bearer eyJhbGciOiJIUzI1NiJ9...")
+    )
+    public ResponseEntity<List<TransactionDto>> listAllByAccount(@PathVariable Long accountId) {
+        List<Transaction> list = transactionService.listAllByAccount(accountId);
+        List<TransactionDto> listDto = new ArrayList<>();
+
+        for(Transaction transaction : list){
+            listDto.add(transactionService.mapToResponseDto(transaction));
+        }
+
+        return ResponseEntity.ok(listDto);
+    }
+
+    @GetMapping("/{transactionId}")
+    @Operation(summary = "Detalle transacción", description = "Obtener el detalle de una transacción a través de su ID")
+    @Parameter(
+            name = "Authorization",
+            in = ParameterIn.HEADER,
+            required = true,
+            description = "JWT Bearer token",
+            schema = @Schema(type = "string", example = "Bearer eyJhbGciOiJIUzI1NiJ9...")
+    )
+    public ResponseEntity<TransactionDto> get(@PathVariable Long accountId, @PathVariable Long transactionId, @RequestHeader("X-Gateway-Auth") String gatewayHeader) {
+        log.info(gatewayHeader);
+        return ResponseEntity.ok(transactionService.mapToResponseDto(transactionService.getById(accountId,transactionId)));
+    }
 }

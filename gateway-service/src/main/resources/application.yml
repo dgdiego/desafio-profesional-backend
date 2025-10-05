@@ -12,8 +12,9 @@ spring:
     #    serviceId: config-service
     #    enabled: true
     gateway:
-      #default-filters:
+      default-filters:
        # - TokenRelay=
+        - AddRequestHeader=X-Gateway-Auth, requestFromGateway
       routes:
         - id: checkout-service
           uri: lb://checkout-service

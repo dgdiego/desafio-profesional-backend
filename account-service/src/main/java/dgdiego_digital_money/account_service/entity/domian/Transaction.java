@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -17,19 +18,32 @@ import java.util.Set;
 @Table(name = "transactions")
     public class Transaction {
 
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-            private Long id;
-            private Double amount;
-            private LocalDateTime dateTime;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private Double amount;
+    private LocalDateTime dateTime;
+    private String detail;
 
-        @Enumerated(EnumType.STRING)
-        private TransactionType type;
+    @Enumerated(EnumType.STRING)
+    private TransactionType type;
 
-        // **************   ACCOUNT   ********************
-        @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "account_id")
-        @JsonIgnore
-        private Account account;
+    // **************   ACCOUNT   ********************
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id")
+    @JsonIgnore
+    private Account account;
+
+    // **************   CARD   ********************
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "card_id")
+    @JsonIgnore
+    private Card card;
+
+    // **************   ACCOUNT FROM   ********************
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_from_id")
+    @JsonIgnore
+    private Account accountFrom;
 
 }

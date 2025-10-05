@@ -44,6 +44,11 @@ public class AccountService {
         return account.getBalance();
     }
 
+    public Account update (Account accountToUpdate){
+        Account account = findById(accountToUpdate.getId());
+        return accountRepository.save(accountToUpdate);
+    }
+
     public Account findById(Long id) {
         Optional<Account> accountSearched = accountRepository.findById(id);
         if (accountSearched.isPresent()) {

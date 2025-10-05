@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Builder
@@ -17,5 +18,8 @@ public class TransactionDto {
     private Double amount;
     private LocalDateTime dateTime;
     private TransactionType type;
+    private String detail;
+    private String destination;
+    private String origin;
     private Long accountId;
 }
