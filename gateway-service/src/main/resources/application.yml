@@ -16,14 +16,6 @@ spring:
        # - TokenRelay=
         - AddRequestHeader=X-Gateway-Auth, requestFromGateway
       routes:
-        - id: checkout-service
-          uri: lb://checkout-service
-          predicates:
-            - Path=/checkout/**
-          #filters:
-          #  - AddRequestHeader=X-Request-from, gateway
-          #  - AddResponseHeader=X-Response-Red, Blue
-          #  - StripPrefix=-1
         - id: users-swagger
           uri: lb://users-service
           predicates:

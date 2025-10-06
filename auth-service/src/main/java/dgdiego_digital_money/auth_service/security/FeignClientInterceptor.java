@@ -1,9 +1,8 @@
-package dgdiego_digital_money.account_service.security;
+package dgdiego_digital_money.auth_service.security;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,11 +17,11 @@ public class FeignClientInterceptor implements RequestInterceptor {
     @Override
     public void apply(RequestTemplate template) {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        /*Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication != null && authentication.getCredentials() instanceof String jwt) {
             template.header("Authorization", "Bearer " + jwt);
-        }
+        }*/
 
         String headerGatewayName = "X-Gateway-Auth";
         String headerGatewayValue = request.getHeader(headerGatewayName);
