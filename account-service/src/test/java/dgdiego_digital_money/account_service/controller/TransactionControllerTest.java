@@ -54,34 +54,52 @@ public class TransactionControllerTest {
     void setUp() {
         transactionRepository.deleteAll();
 
-        // crear cuenta de prueba
         try {
             accountId = accountService.create(1L);
         } catch (IllegalArgumentException ex) {
             accountId = accountService.findByUserId(1L).getId();
         }
 
-        // mockear permisos para que no falle
         doNothing().when(permissionService).canAccess(1L);
 
-        // crear algunas transacciones
         for (int i = 0; i < 6; i++) {
             Transaction tx = new Transaction();
             tx.setAccount(accountService.findById(accountId));
             tx.setAmount(100.0 + i);
             tx.setType(TransactionType.DEBIT);
             tx.setDateTime(LocalDateTime.now().minusDays(i));
+            tx.setDetail("Transacción de prueba " + i);
             transactionRepository.save(tx);
         }
     }
 
     @Test
-    void testTransactionsDashboardEndpoint() throws Exception {
+    void testTransactionsDashboardEndpoint_returnsLastFiveTransactions() throws Exception {
         mockMvc.perform(get("/accounts/{accountId}/transactions", accountId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(5))) // devuelve solo las últimas 5
+                .andExpect(jsonPath("$", hasSize(5)))
                 .andExpect(jsonPath("$[0].type", is("DEBIT")))
                 .andExpect(jsonPath("$[0].amount", notNullValue()))
                 .andExpect(jsonPath("$[0].accountId", is(accountId.intValue())));
+    }
+
+    @Test
+    void testListAllByAccount_returnsAllTransactions() throws Exception {
+        mockMvc.perform(get("/accounts/{accountId}/transactions/activity", accountId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(6)))
+                .andExpect(jsonPath("$[0].type", is("DEBIT")));
+    }
+
+    @Test
+    void testGetTransactionById_returnsCorrectTransaction() throws Exception {
+        Transaction tx = transactionRepository.findAll().get(0);
+
+        mockMvc.perform(get("/accounts/{accountId}/transactions/{transactionId}", accountId, tx.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(tx.getId().intValue())))
+                .andExpect(jsonPath("$.amount", is(tx.getAmount())))
+                .andExpect(jsonPath("$.type", is(tx.getType().name())))
+                .andExpect(jsonPath("$.detail", is(tx.getDetail())));
     }
 }

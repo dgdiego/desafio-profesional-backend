@@ -77,8 +77,7 @@ public class TransactionController {
             description = "JWT Bearer token",
             schema = @Schema(type = "string", example = "Bearer eyJhbGciOiJIUzI1NiJ9...")
     )
-    public ResponseEntity<TransactionDto> get(@PathVariable Long accountId, @PathVariable Long transactionId, @RequestHeader("X-Gateway-Auth") String gatewayHeader) {
-        log.info(gatewayHeader);
+    public ResponseEntity<TransactionDto> get(@PathVariable Long accountId, @PathVariable Long transactionId) {
         return ResponseEntity.ok(transactionService.mapToResponseDto(transactionService.getById(accountId,transactionId)));
     }
 }

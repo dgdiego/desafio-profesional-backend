@@ -3,6 +3,7 @@ package dgdiego_digital_money.account_service.integration;
 import dgdiego_digital_money.account_service.entity.domian.Account;
 import dgdiego_digital_money.account_service.entity.domian.Transaction;
 import dgdiego_digital_money.account_service.entity.domian.TransactionType;
+import dgdiego_digital_money.account_service.entity.dto.CardDepositDto;
 import dgdiego_digital_money.account_service.entity.dto.TransactionDto;
 import dgdiego_digital_money.account_service.repository.IAccountRepository;
 import dgdiego_digital_money.account_service.repository.ITransactionRepository;
@@ -41,7 +42,7 @@ public class TransactionServiceIntegrationTest {
     private IAccountRepository accountRepository;
 
     @MockBean
-    private PermissionService permissionService; // si es real, puede mockearse con spy
+    private PermissionService permissionService;
 
     private Account testAccount;
 
@@ -50,14 +51,20 @@ public class TransactionServiceIntegrationTest {
         transactionRepository.deleteAll();
         accountRepository.deleteAll();
 
-        // Crear la cuenta de prueba usando tu método real de AccountService
+        // Crea la cuenta con el método real de AccountService
         Long accountId = accountService.create(1L);
-        testAccount = accountService.findById(accountId); // obtenemos la entidad completa
+        testAccount = accountService.findById(accountId);
+
+        // Mockea los permisos (no queremos restricciones en tests)
+        doNothing().when(permissionService).canAccess(anyLong());
     }
 
+    // -----------------------------
+    // ✅ transactionsDashboard()
+    // -----------------------------
     @Test
     void testTransactionsDashboard_returnsLatestTransactions() {
-        // Crear algunas transacciones
+        // Crear 6 transacciones (solo deberían devolverse 5)
         for (int i = 0; i < 6; i++) {
             Transaction tx = new Transaction();
             tx.setAccount(testAccount);
@@ -67,16 +74,21 @@ public class TransactionServiceIntegrationTest {
             transactionRepository.save(tx);
         }
 
-        // Podés mockear permisos si querés, por ejemplo con spy
-        doNothing().when(permissionService).canAccess(anyLong());
-
         List<Transaction> result = transactionService.transactionsDashboard(testAccount.getId());
 
-        // Debe devolver solo las últimas 5 por limit
-        assertEquals(5, result.size());
-        assertTrue(result.get(0).getDateTime().isAfter(result.get(4).getDateTime()));
+        assertNotNull(result);
+        assertEquals(5, result.size(), "Debe devolver solo las 5 últimas transacciones");
+
+        // Verificar que están ordenadas descendentemente por fecha
+        for (int i = 0; i < result.size() - 1; i++) {
+            assertTrue(result.get(i).getDateTime().isAfter(result.get(i + 1).getDateTime()),
+                    "Las transacciones deben estar en orden descendente por fecha");
+        }
     }
 
+    // -----------------------------
+    // ✅ mapToResponseDto()
+    // -----------------------------
     @Test
     void testMapToResponseDto_integration() {
         Transaction tx = new Transaction();
@@ -84,6 +96,7 @@ public class TransactionServiceIntegrationTest {
         tx.setAmount(500.0);
         tx.setType(TransactionType.INCOME);
         tx.setDateTime(LocalDateTime.now());
+        tx.setDetail("Ingreso por transferencia");
         transactionRepository.save(tx);
 
         TransactionDto dto = transactionService.mapToResponseDto(tx);
@@ -92,6 +105,44 @@ public class TransactionServiceIntegrationTest {
         assertEquals(tx.getId(), dto.getId());
         assertEquals(tx.getType(), dto.getType());
         assertEquals(tx.getAmount(), dto.getAmount());
-        assertEquals(tx.getAccount().getId(), dto.getAccountId());
+        assertEquals(testAccount.getId(), dto.getAccountId());
+        assertEquals("Ingreso por transferencia", dto.getDetail());
+    }
+
+    // -----------------------------
+    // ✅ listAllByAccount()
+    // -----------------------------
+    @Test
+    void testListAllByAccount_returnsAll() {
+        Transaction tx1 = new Transaction();
+        tx1.setAccount(testAccount);
+        tx1.setAmount(100.0);
+        tx1.setType(TransactionType.INCOME);
+        tx1.setDateTime(LocalDateTime.now());
+        transactionRepository.save(tx1);
+
+        Transaction tx2 = new Transaction();
+        tx2.setAccount(testAccount);
+        tx2.setAmount(200.0);
+        tx2.setType(TransactionType.DEBIT);
+        tx2.setDateTime(LocalDateTime.now().minusHours(1));
+        transactionRepository.save(tx2);
+
+        List<Transaction> result = transactionService.listAllByAccount(testAccount.getId());
+
+        assertEquals(2, result.size(), "Debe devolver todas las transacciones asociadas a la cuenta");
+        assertTrue(result.get(0).getDateTime().isAfter(result.get(1).getDateTime()));
+    }
+
+    // -----------------------------
+    // ❌ createDepositWithCard() — cuando el monto es inválido
+    // -----------------------------
+    @Test
+    void testCreateDepositWithCard_invalidAmount_throwsException() {
+        CardDepositDto dto = new CardDepositDto();
+        dto.setAmount(0.0); // monto inválido
+
+        assertThrows(IllegalArgumentException.class, () ->
+                transactionService.createDepositWithCard(testAccount.getId(), dto));
     }
 }

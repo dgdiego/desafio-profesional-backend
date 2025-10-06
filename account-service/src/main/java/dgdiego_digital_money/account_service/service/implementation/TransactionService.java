@@ -81,15 +81,15 @@ public class TransactionService {
         Account account = accountService.findById(accountId);
         permissionService.canAccess(account.getUserId());
 
+        if(cardDepositDto.getAmount() <= 0){
+            throw new IllegalArgumentException("El monto de la operación no puede ser menor o igual a cero");
+        }
+
         Card card = cardService.findById(cardDepositDto.getCardId());
 
         // si la tarjeta no corresponde a la cuenta
         if(card.getAccountId() != accountId){
             throw new IllegalArgumentException("No es posible realizar la operación");
-        }
-
-        if(cardDepositDto.getAmount() <= 0){
-            throw new IllegalArgumentException("El monto de la operación no puede ser menor o igual a cero");
         }
 
         account.setBalance(account.getBalance() + cardDepositDto.getAmount());
