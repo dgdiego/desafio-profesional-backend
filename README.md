@@ -82,6 +82,18 @@ Endpoint para Agregar tarjeta (POST /accounts/{ID}/cards)
 
 Endpoint para eliminar tarjeta (DELETE /accounts/{ID}/cards/{ID tarjeta})
 
+-> Sprint 3: Ingreso de Fondos y ver Actividad
+
+Objetivo: Ingresar dinero a las cuentas y obtener información sobre las transacciones.
+
+Funcionalidades:
+
+Endpoint Historial de movimientos de la cuenta (GET /accounts/{ID}/transactions/activity)
+
+Detalle de una transacción específica (GET /accounts/{ID}/transactions/{ID-transaction})
+
+Ingreso/Depósito de dinero a la cuenta (POST /accounts/{ID}/transferences)
+
 # 👨‍🚀 Postman Collection
 En la raíz del proyecto está la colección para importar a postman: digital-money.postman_collection
 
