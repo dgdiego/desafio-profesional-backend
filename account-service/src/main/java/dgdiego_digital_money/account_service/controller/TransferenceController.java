@@ -20,14 +20,14 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/accounts/{accountId}/transferences")
-@Tag(name = "Transferencias", description = "Operaciones relacionadas con administración de transferencias")
+@RequestMapping("/accounts/{accountId}")
+@Tag(name = "Transferencias", description = "Operaciones relacionadas con administración de transferencias y depósitos")
 public class TransferenceController {
 
     @Autowired
     private TransactionService transactionService;
 
-    @PostMapping
+    @PostMapping("/deposits")
     @Operation(summary = "Depósito con tarjeta", description = "Acreditar dinero a la billetera desde una tarjeta")
     @Parameter(
             name = "Authorization",
@@ -36,8 +36,22 @@ public class TransferenceController {
             description = "JWT Bearer token",
             schema = @Schema(type = "string", example = "Bearer eyJhbGciOiJIUzI1NiJ9...")
     )
-    public ResponseEntity<?> transactionsDashboard(@PathVariable Long accountId, @Valid @RequestBody CardDepositDto requestDto) {
+    public ResponseEntity<?> saveDeposit(@PathVariable Long accountId, @Valid @RequestBody CardDepositDto requestDto) {
         transactionService.createDepositWithCard(accountId,requestDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/transferences")
+    @Operation(summary = "Transferencia entre cuentas", description = "Transferir dinero desde mi billetera a otra cuenta de la aplicación")
+    @Parameter(
+            name = "Authorization",
+            in = ParameterIn.HEADER,
+            required = true,
+            description = "JWT Bearer token",
+            schema = @Schema(type = "string", example = "Bearer eyJhbGciOiJIUzI1NiJ9...")
+    )
+    public ResponseEntity<?> saveTransference(@PathVariable Long accountId, @Valid @RequestBody CardDepositDto requestDto) {
+        //transactionService.createDepositWithCard(accountId,requestDto);
         return ResponseEntity.ok().build();
     }
 }
