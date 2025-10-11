@@ -31,8 +31,6 @@ public class User implements UserDetails {
     private String email;
     private String dni;
     private String phone;
-    private String alias;
-    private String cvu;
 
     // **************   ROLES   ********************
     @ManyToMany(fetch = FetchType.EAGER)

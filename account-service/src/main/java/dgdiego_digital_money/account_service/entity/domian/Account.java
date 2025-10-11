@@ -28,6 +28,8 @@ public class Account {
     private Long id;
     private Long userId;
     private Double balance;
+    private String alias;
+    private String cvu;
 
     // **************   TRANSACTIONS   ********************
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

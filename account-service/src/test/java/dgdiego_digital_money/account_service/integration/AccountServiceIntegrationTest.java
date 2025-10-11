@@ -1,6 +1,7 @@
 package dgdiego_digital_money.account_service.integration;
 
 import dgdiego_digital_money.account_service.entity.domian.Account;
+import dgdiego_digital_money.account_service.entity.dto.AccountRequestInitDTO;
 import dgdiego_digital_money.account_service.exceptions.ResourceNotFoundException;
 import dgdiego_digital_money.account_service.repository.IAccountRepository;
 import dgdiego_digital_money.account_service.service.implementation.AccountService;
@@ -33,25 +34,40 @@ class AccountServiceIntegrationTest {
 
     @Test
     void create_ShouldPersistAccount_WhenUserHasNoAccount() {
-        Long userId = 1L;
+        // given
+        AccountRequestInitDTO request = new AccountRequestInitDTO();
+        request.setUserId(1L);
+        request.setAlias("test.alias");
+        request.setCvu("1234567890123456789012");
 
-        Long accountId = accountService.create(userId);
+        // when
+        Long accountId = accountService.create(request);
 
+        // then
         Account saved = accountRepository.findById(accountId)
                 .orElseThrow(() -> new RuntimeException("No se guardó la cuenta"));
 
-        assertEquals(userId, saved.getUserId());
+        assertEquals(request.getUserId(), saved.getUserId());
         assertEquals(0.0, saved.getBalance());
+        assertEquals(request.getAlias(), saved.getAlias());
+        assertEquals(request.getCvu(), saved.getCvu());
     }
 
     @Test
     void findByUserId_ShouldReturnAccount_WhenExists() {
-        Account account = Account.builder().userId(2L).balance(500.0).build();
+        Account account = Account.builder()
+                .userId(2L)
+                .balance(500.0)
+                .alias("alias.test")
+                .cvu("1234567890123456789012")
+                .build();
         accountRepository.save(account);
 
         Account result = accountService.findByUserId(2L);
 
         assertEquals(500.0, result.getBalance());
+        assertEquals("alias.test", result.getAlias());
+        assertEquals("1234567890123456789012", result.getCvu());
     }
 
     @Test
@@ -61,20 +77,31 @@ class AccountServiceIntegrationTest {
     }
 
     @Test
-    void getBalance_ShouldReturnBalance_WhenPermissionGranted() {
-        Account account = Account.builder().userId(3L).balance(750.0).build();
+    void findById_ShouldReturnAccount_WhenPermissionGranted() {
+        Account account = Account.builder()
+                .userId(3L)
+                .balance(750.0)
+                .alias("alias3")
+                .cvu("9876543210987654321098")
+                .build();
         accountRepository.save(account);
 
         doNothing().when(permissionService).canAccess(3L);
 
-        Double balance = accountService.getBalance(account.getId());
+        Account result = accountService.findById(account.getId());
 
-        assertEquals(750.0, balance);
+        assertEquals(account.getId(), result.getId());
+        assertEquals(account.getUserId(), result.getUserId());
+        assertEquals(account.getBalance(), result.getBalance());
+        assertEquals(account.getAlias(), result.getAlias());
+        assertEquals(account.getCvu(), result.getCvu());
     }
 
     @Test
-    void getBalance_ShouldThrowException_WhenAccountNotFound() {
+    void findById_ShouldThrowException_WhenAccountNotFound() {
         assertThrows(ResourceNotFoundException.class,
-                () -> accountService.getBalance(999L));
+                () -> accountService.findById(999L));
     }
 }
+
+

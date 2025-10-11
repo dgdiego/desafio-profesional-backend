@@ -75,7 +75,7 @@ class TransferenceControllerTest {
     void testCreateDepositWithCard_returnsOk() throws Exception {
         doNothing().when(transactionService).createDepositWithCard(anyLong(), any(CardDepositDto.class));
 
-        mockMvc.perform(post("/accounts/{accountId}/transferences", accountId)
+        mockMvc.perform(post("/accounts/{accountId}/deposits", accountId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validDto)))
                 .andExpect(status().isOk());
@@ -86,7 +86,7 @@ class TransferenceControllerTest {
         doThrow(new IllegalArgumentException("No es posible realizar la operación"))
                 .when(transactionService).createDepositWithCard(anyLong(), any(CardDepositDto.class));
 
-        mockMvc.perform(post("/accounts/{accountId}/transferences", accountId)
+        mockMvc.perform(post("/accounts/{accountId}/deposits", accountId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidDto)))
                 .andExpect(status().isBadRequest())

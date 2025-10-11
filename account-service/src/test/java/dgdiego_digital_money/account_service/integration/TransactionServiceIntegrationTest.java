@@ -3,6 +3,7 @@ package dgdiego_digital_money.account_service.integration;
 import dgdiego_digital_money.account_service.entity.domian.Account;
 import dgdiego_digital_money.account_service.entity.domian.Transaction;
 import dgdiego_digital_money.account_service.entity.domian.TransactionType;
+import dgdiego_digital_money.account_service.entity.dto.AccountRequestInitDTO;
 import dgdiego_digital_money.account_service.entity.dto.CardDepositDto;
 import dgdiego_digital_money.account_service.entity.dto.TransactionDto;
 import dgdiego_digital_money.account_service.repository.IAccountRepository;
@@ -20,7 +21,10 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -29,6 +33,7 @@ import static org.mockito.Mockito.doNothing;
 @SpringBootTest
 @ActiveProfiles("test")
 public class TransactionServiceIntegrationTest {
+
     @Autowired
     private TransactionService transactionService;
 
@@ -46,13 +51,21 @@ public class TransactionServiceIntegrationTest {
 
     private Account testAccount;
 
+    private Long createTestAccount(Long userId) {
+        AccountRequestInitDTO request = new AccountRequestInitDTO();
+        request.setUserId(userId);
+        request.setAlias("alias." + userId);
+        request.setCvu(String.format("%022d", userId));
+        return accountService.create(request);
+    }
+
     @BeforeEach
     void setUp() {
         transactionRepository.deleteAll();
         accountRepository.deleteAll();
 
         // Crea la cuenta con el método real de AccountService
-        Long accountId = accountService.create(1L);
+        Long accountId = createTestAccount(1L);
         testAccount = accountService.findById(accountId);
 
         // Mockea los permisos (no queremos restricciones en tests)
@@ -145,4 +158,60 @@ public class TransactionServiceIntegrationTest {
         assertThrows(IllegalArgumentException.class, () ->
                 transactionService.createDepositWithCard(testAccount.getId(), dto));
     }
+
+    @Test
+    void testGetLastRecipientsByAccount_inMemory_withoutService() {
+        // Crear 6 cuentas destinatarias
+        List<Account> recipients = new ArrayList<>();
+        for (long userId = 2; userId <= 7; userId++) {
+            Long accountId = createTestAccount(userId);
+            Account recipient = accountService.findById(accountId);
+            recipients.add(recipient);
+
+            // Crear transacciones de testAccount hacia cada destinatario
+            Transaction tx = new Transaction();
+            tx.setAccount(testAccount);         // cuenta origen
+            tx.setRelatedAccount(recipient);    // cuenta destino
+            tx.setAmount(100.0 + userId);
+            tx.setType(TransactionType.DEBIT);
+            tx.setDateTime(LocalDateTime.now().minusDays(7 - userId));
+            transactionRepository.save(tx);
+        }
+
+        // Traer todas las transacciones de la base
+        List<Transaction> allTx = transactionRepository.findAll();
+
+        // Filtrar solo las transacciones de testAccount con relatedAccount no nulo
+        Map<Long, LocalDateTime> lastTxPerRecipient = allTx.stream()
+                .filter(t -> t.getAccount().getId().equals(testAccount.getId()) && t.getRelatedAccount() != null)
+                .collect(Collectors.toMap(
+                        t -> t.getRelatedAccount().getId(),
+                        Transaction::getDateTime,
+                        (d1, d2) -> d1.isAfter(d2) ? d1 : d2 // tomar la fecha más reciente
+                ));
+
+        // Ordenar por fecha descendente y tomar los últimos 5 destinatarios
+        List<Long> lastFiveRecipientIds = lastTxPerRecipient.entrySet().stream()
+                .sorted(Map.Entry.<Long, LocalDateTime>comparingByValue().reversed())
+                .limit(5)
+                .map(Map.Entry::getKey)
+                .toList();
+
+        // Obtener los Account reales
+        List<Account> lastFiveRecipients = lastFiveRecipientIds.stream()
+                .map(accountService::findById)
+                .toList();
+
+        // Verificaciones
+        assertNotNull(lastFiveRecipients);
+        assertEquals(5, lastFiveRecipients.size(), "Debe devolver solo los 5 últimos destinatarios");
+
+        // Verificar que los IDs estén ordenados correctamente
+        List<Long> actualIds = lastFiveRecipients.stream().map(Account::getId).toList();
+        assertEquals(lastFiveRecipientIds, actualIds, "Los destinatarios deben coincidir con los más recientes");
+    }
+
+
+
 }
+

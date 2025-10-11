@@ -1,6 +1,7 @@
 package dgdiego_digital_money.account_service.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dgdiego_digital_money.account_service.entity.dto.AccountRequestInitDTO;
 import dgdiego_digital_money.account_service.entity.dto.CardCreateDto;
 import dgdiego_digital_money.account_service.entity.dto.CardDto;
 import dgdiego_digital_money.account_service.entity.domian.CardType;
@@ -59,9 +60,14 @@ public class CardControllerTest {
     @BeforeEach
     void setup() {
         accountRepository.deleteAll();
+
         // Crear una cuenta de prueba
-        Long userId = 200L;
-        accountId = accountService.create(userId);
+        AccountRequestInitDTO request = new AccountRequestInitDTO();
+        request.setUserId(200L);
+        request.setAlias("test.alias");
+        request.setCvu("1234567890123456789012");
+
+        accountId = accountService.create(request);
     }
 
     @Test
@@ -69,7 +75,7 @@ public class CardControllerTest {
 
         //  Crear DTO de tarjeta
         CardCreateDto cardDto = CardCreateDto.builder()
-                .number("1111222233334444")
+                .number("1234-4446-7891-4444")
                 .type(CardType.CREDIT)
                 .expirationDate(LocalDate.now().plusYears(4))
                 .build();
@@ -90,7 +96,7 @@ public class CardControllerTest {
         mockMvc.perform(get("/accounts/{accountId}/cards/{cardId}", accountId, createdCard.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(createdCard.getId()))
-                .andExpect(jsonPath("$.number").value("1111222233334444"))
+                .andExpect(jsonPath("$.number").value("1234-4446-7891-4444"))
                 .andExpect(jsonPath("$.type").value("CREDIT"))
                 .andExpect(jsonPath("$.accountId").value(accountId));
 

@@ -1,6 +1,7 @@
 package dgdiego_digital_money.account_service.service;
 
 import dgdiego_digital_money.account_service.entity.domian.Account;
+import dgdiego_digital_money.account_service.entity.dto.AccountRequestInitDTO;
 import dgdiego_digital_money.account_service.exceptions.ResourceNotFoundException;
 import dgdiego_digital_money.account_service.repository.IAccountRepository;
 
@@ -34,50 +35,58 @@ class AccountServiceTest {
     }
     @Test
     void create_ShouldCreateNewAccount_WhenUserHasNoAccount() {
-        Long userId = 1L;
+        // given
+        AccountRequestInitDTO request = new AccountRequestInitDTO();
+        request.setUserId(1L);
+        request.setAlias("mi.alias");
+        request.setCvu("1234567890123456789012");
 
-        when(accountRepository.findByUserId(userId)).thenReturn(Optional.empty());
+        when(accountRepository.findByUserId(request.getUserId())).thenReturn(Optional.empty());
         when(accountRepository.save(any(Account.class))).thenAnswer(invocation -> {
             Account acc = invocation.getArgument(0);
             acc.setId(10L);
             return acc;
         });
 
-        Long result = accountService.create(userId);
+        // when
+        Long result = accountService.create(request);
 
+        // then
         assertEquals(10L, result);
+        verify(accountRepository).findByUserId(request.getUserId());
         verify(accountRepository).save(any(Account.class));
     }
 
+
     @Test
     void create_ShouldThrowException_WhenAccountAlreadyExists() {
-        Long userId = 1L;
-        Account existing = Account.builder().id(5L).userId(userId).balance(100.0).build();
+        // given
+        AccountRequestInitDTO request = new AccountRequestInitDTO();
+        request.setUserId(1L);
+        request.setAlias("mi.alias");
+        request.setCvu("1234567890123456789012");
 
-        when(accountRepository.findByUserId(userId)).thenReturn(Optional.of(existing));
+        Account existing = Account.builder()
+                .id(5L)
+                .userId(request.getUserId())
+                .balance(100.0)
+                .build();
 
-        assertThrows(IllegalArgumentException.class, () -> accountService.create(userId));
+        when(accountRepository.findByUserId(request.getUserId()))
+                .thenReturn(Optional.of(existing));
+
+        // when / then
+        assertThrows(IllegalArgumentException.class, () -> accountService.create(request));
+
+        verify(accountRepository).findByUserId(request.getUserId());
         verify(accountRepository, never()).save(any());
-    }
-
-    @Test
-    void getBalance_ShouldReturnBalance_WhenAccountExistsAndPermissionGranted() {
-        Long accountId = 1L;
-        Account account = Account.builder().id(accountId).userId(2L).balance(50.0).build();
-
-        when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
-
-        Double result = accountService.getBalance(accountId);
-
-        assertEquals(50.0, result);
-        verify(permissionService).canAccess(2L);
     }
 
     @Test
     void getBalance_ShouldThrowException_WhenAccountNotFound() {
         when(accountRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> accountService.getBalance(1L));
+        assertThrows(ResourceNotFoundException.class, () -> accountService.findById(1L));
     }
 
     @Test

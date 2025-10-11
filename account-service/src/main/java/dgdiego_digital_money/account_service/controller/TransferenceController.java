@@ -1,8 +1,12 @@
 package dgdiego_digital_money.account_service.controller;
 
+import dgdiego_digital_money.account_service.entity.domian.Account;
 import dgdiego_digital_money.account_service.entity.domian.Transaction;
+import dgdiego_digital_money.account_service.entity.dto.AccountResponseDTO;
 import dgdiego_digital_money.account_service.entity.dto.CardDepositDto;
 import dgdiego_digital_money.account_service.entity.dto.TransactionDto;
+import dgdiego_digital_money.account_service.entity.dto.TransferenceCreateDto;
+import dgdiego_digital_money.account_service.service.implementation.AccountService;
 import dgdiego_digital_money.account_service.service.implementation.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -27,6 +31,9 @@ public class TransferenceController {
     @Autowired
     private TransactionService transactionService;
 
+    @Autowired
+    private AccountService accountService;
+
     @PostMapping("/deposits")
     @Operation(summary = "Depósito con tarjeta", description = "Acreditar dinero a la billetera desde una tarjeta")
     @Parameter(
@@ -50,8 +57,29 @@ public class TransferenceController {
             description = "JWT Bearer token",
             schema = @Schema(type = "string", example = "Bearer eyJhbGciOiJIUzI1NiJ9...")
     )
-    public ResponseEntity<?> saveTransference(@PathVariable Long accountId, @Valid @RequestBody CardDepositDto requestDto) {
-        //transactionService.createDepositWithCard(accountId,requestDto);
+    public ResponseEntity<?> saveTransference(@PathVariable Long accountId, @Valid @RequestBody TransferenceCreateDto requestDto) {
+        transactionService.createTransference(accountId,requestDto);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/transferences")
+    @Operation(summary = "Últimos destinatarios", description = "Obtener los últimos destinatarios a los que se les transfirió dinero")
+    @Parameter(
+            name = "Authorization",
+            in = ParameterIn.HEADER,
+            required = true,
+            description = "JWT Bearer token",
+            schema = @Schema(type = "string", example = "Bearer eyJhbGciOiJIUzI1NiJ9...")
+    )
+    public ResponseEntity<?> findLastRecipients(@PathVariable Long accountId) {
+        List<Account> list = transactionService.getLastRecipientsByAccount(accountId);
+        List<AccountResponseDTO> listDto = new ArrayList<>();
+
+        for(Account account : list){
+            account.setBalance(null);
+            listDto.add(accountService.mapToResponseDto(account));
+        }
+
+        return ResponseEntity.ok(listDto);
     }
 }

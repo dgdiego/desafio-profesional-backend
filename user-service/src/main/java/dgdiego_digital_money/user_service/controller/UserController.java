@@ -3,6 +3,7 @@ package dgdiego_digital_money.user_service.controller;
 import dgdiego_digital_money.user_service.entity.dto.RegistrationRequestDTO;
 import dgdiego_digital_money.user_service.entity.dto.RegistrationResponseDTO;
 import dgdiego_digital_money.user_service.entity.dto.UserDto;
+import dgdiego_digital_money.user_service.entity.dto.UserRequestDTO;
 import dgdiego_digital_money.user_service.service.implementation.UserService;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
@@ -57,9 +58,32 @@ public class UserController {
         return  ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Obtener usuario", description = "Obtener los datos del usuario")
+    @Parameter(
+            name = "Authorization",
+            in = ParameterIn.HEADER,
+            required = true,
+            description = "JWT Bearer token",
+            schema = @Schema(type = "string", example = "Bearer eyJhbGciOiJIUzI1NiJ9...")
+    )
     @GetMapping(path = "/{id}")
     public ResponseEntity<UserDto> findById(@PathVariable Long id) {
         return  ResponseEntity.ok(userService.mapToResponseDto(userService.findById(id,false)));
     }
 
+    @Operation(summary = "Actualizar usuario", description = "Actualizar los datos del usuario")
+    @Parameter(
+            name = "Authorization",
+            in = ParameterIn.HEADER,
+            required = true,
+            description = "JWT Bearer token",
+            schema = @Schema(type = "string", example = "Bearer eyJhbGciOiJIUzI1NiJ9...")
+    )
+    @PatchMapping(path = "/{id}")
+    public ResponseEntity<UserDto> update(@Valid @RequestBody UserRequestDTO requestDTO, @PathVariable Long id) {
+        requestDTO.setId(id);
+        UserDto response = userService.mapToResponseDto(userService.update(userService.mapToEntity(requestDTO)));
+        response.setPassword(null);
+        return  ResponseEntity.ok(response);
+    }
 }

@@ -10,9 +10,7 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     dni VARCHAR(20) NOT NULL,
-    phone VARCHAR(50),
-    alias VARCHAR(150),
-    cvu VARCHAR(30)
+    phone VARCHAR(50)
 );
 
 CREATE TABLE user_roles (

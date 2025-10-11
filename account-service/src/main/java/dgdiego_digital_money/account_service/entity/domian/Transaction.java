@@ -4,9 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Set;
 
 
 @Getter
@@ -44,6 +42,6 @@ import java.util.Set;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_from_id")
     @JsonIgnore
-    private Account accountFrom;
+    private Account relatedAccount;
 
 }

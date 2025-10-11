@@ -17,8 +17,6 @@ public class User {
     private String email;
     private String dni;
     private String phone;
-    private String alias;
-    private String cvu;
     private String password;
 
     List<Role> roles;

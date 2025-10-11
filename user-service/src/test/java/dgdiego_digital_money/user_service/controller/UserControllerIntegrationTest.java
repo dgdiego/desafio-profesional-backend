@@ -5,6 +5,7 @@ import dgdiego_digital_money.user_service.entity.domian.User;
 import dgdiego_digital_money.user_service.entity.dto.RegistrationRequestDTO;
 import dgdiego_digital_money.user_service.entity.dto.RegistrationResponseDTO;
 import dgdiego_digital_money.user_service.entity.dto.UserDto;
+import dgdiego_digital_money.user_service.entity.dto.UserRequestDTO;
 import dgdiego_digital_money.user_service.service.implementation.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
@@ -77,8 +79,6 @@ class UserControllerIntegrationTest {
                 .email("test@example.com")
                 .dni("1234")
                 .phone("123456")
-                .alias("perro-gato-liebre")
-                .cvu("9999999")
                 .build();
 
         UserDto mockDto = new UserDto(
@@ -88,8 +88,6 @@ class UserControllerIntegrationTest {
                 mockUser.getEmail(),
                 mockUser.getDni(),
                 mockUser.getPhone(),
-                mockUser.getAlias(),
-                mockUser.getCvu(),
                 "",
                 null
         );
@@ -111,4 +109,67 @@ class UserControllerIntegrationTest {
         mockMvc.perform(post("/users/logout"))
                 .andExpect(status().isOk());
     }
+
+
+    @Test
+    void update_ShouldReturnUpdatedUser() throws Exception {
+        // Arrange
+        Long userId = 1L;
+        UserRequestDTO requestDTO = new UserRequestDTO();
+        requestDTO.setName("Diego");
+        requestDTO.setLastname("Gimenez");
+        requestDTO.setEmail("updated@example.com");
+        requestDTO.setPassword("password123");
+        requestDTO.setDni("12345678");
+        requestDTO.setPhone("099123456");
+
+        UserDto responseDTO = new UserDto();
+        responseDTO.setId(userId);
+        responseDTO.setName("Diego");
+        responseDTO.setLastname("Gimenez");
+        responseDTO.setEmail("updated@example.com");
+        responseDTO.setPassword(null); // la controladora lo deja en null
+
+        // Mockeamos el flujo de UserService
+        Mockito.when(userService.mapToEntity(any(UserRequestDTO.class)))
+                .thenAnswer(invocation -> {
+                    UserRequestDTO dto = invocation.getArgument(0);
+                    User user = new User();
+                    user.setId(dto.getId());
+                    user.setName(dto.getName());
+                    user.setLastname(dto.getLastname());
+                    user.setEmail(dto.getEmail());
+                    user.setPassword(dto.getPassword());
+                    user.setDni(dto.getDni());
+                    user.setPhone(dto.getPhone());
+                    return user;
+                });
+
+        Mockito.when(userService.update(any(User.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        Mockito.when(userService.mapToResponseDto(any(User.class)))
+                .thenAnswer(invocation -> {
+                    User user = invocation.getArgument(0);
+                    UserDto dto = new UserDto();
+                    dto.setId(user.getId());
+                    dto.setName(user.getName());
+                    dto.setLastname(user.getLastname());
+                    dto.setEmail(user.getEmail());
+                    dto.setPassword(null); // como hace la controladora
+                    return dto;
+                });
+
+        // Act & Assert
+        mockMvc.perform(patch("/users/{id}", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(userId))
+                .andExpect(jsonPath("$.name").value("Diego"))
+                .andExpect(jsonPath("$.lastname").value("Gimenez"))
+                .andExpect(jsonPath("$.email").value("updated@example.com"))
+                .andExpect(jsonPath("$.password").doesNotExist()); // la controladora lo deja null
+    }
+
 }

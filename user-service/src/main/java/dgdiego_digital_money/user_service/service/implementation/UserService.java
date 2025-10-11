@@ -2,11 +2,10 @@ package dgdiego_digital_money.user_service.service.implementation;
 
 import dgdiego_digital_money.user_service.entity.domian.Rol;
 import dgdiego_digital_money.user_service.entity.domian.User;
-import dgdiego_digital_money.user_service.entity.dto.RegistrationRequestDTO;
-import dgdiego_digital_money.user_service.entity.dto.RegistrationResponseDTO;
-import dgdiego_digital_money.user_service.entity.dto.UserDto;
+import dgdiego_digital_money.user_service.entity.dto.*;
 import dgdiego_digital_money.user_service.exceptions.ResourceNotFoundException;
 import dgdiego_digital_money.user_service.repository.IUserRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -72,18 +72,58 @@ public class UserService {
                 .name(registrationDto.getName())
                 .lastname(registrationDto.getLastname())
                 .phone(registrationDto.getPhone())
-                .cvu(generateCvu())
-                .alias(generateAlias())
                 .roles(Set.of(userRol))
                 .build();
 
         userRepository.save(user);
 
-        accountService.create(user.getId());
+        AccountRequestInitDTO initAccount = AccountRequestInitDTO.builder()
+                .userId(user.getId())
+                .alias(accountService.generateAlias())
+                .cvu(accountService.generateCvu())
+                .build();
 
-        return mapToRegistrationResponseDto(user);
+        accountService.create(initAccount);
+
+        return mapToRegistrationResponseDto(user, initAccount);
 
     }
+
+    @Transactional
+    public User update(User userRequest){
+        permissionService.canAccess(userRequest.getId());
+
+        User userToUpdate = findById(userRequest.getId(),true);
+
+        //si actualiza el email chequeo que no exista otro usuario con ese
+        if(!userToUpdate.getEmail().equals(userRequest.getEmail())){
+            try{
+                User existedUser = findByEmail(userRequest.getEmail());
+                throw new IllegalArgumentException("No es posible asignar este email "+ userRequest.getEmail());
+            }catch (ResourceNotFoundException ex){
+                userToUpdate.setEmail(userRequest.getEmail());
+            }
+        }
+        // si actualiza el password
+        if(userRequest.getPassword() != null && !userRequest.getPassword().isEmpty()){
+            String regex = "^(?=.*[a-z])(?=.*?[0-9]).{8,}$";
+            Pattern pattern = Pattern.compile(regex);
+            if(!pattern.matcher(userRequest.getPassword()).matches()){
+                throw new IllegalArgumentException("El formato del password no es correcto");
+            }
+            userToUpdate.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+        }
+
+        userToUpdate.setName(userRequest.getName());
+        userToUpdate.setLastname(userRequest.getLastname());
+        userToUpdate.setDni(userRequest.getDni());
+        userToUpdate.setPhone(userRequest.getPhone());
+
+        userRepository.save(userToUpdate);
+
+        return userToUpdate;
+    }
+
 
     public void logout(){
         authService.logout();
@@ -118,47 +158,10 @@ public class UserService {
 
     }
 
-    private String generateCvu(){
-        SecureRandom random = new SecureRandom();
-        return String.valueOf(
-                (long) (Math.pow(10, 21) + random.nextDouble() * (Math.pow(10, 22) - Math.pow(10, 21) - 1))
-        );
-    }
-
-    private String generateAlias(){
-        String filePath = "/list-alias.txt";
-        String alias = "";
-        try {
-
-            InputStream inputStream = getClass().getResourceAsStream(filePath);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-
-            List<String> aliases = reader.lines().collect(Collectors.toList());
 
 
 
-            if (aliases.size() < 3) {
-                String mensaje = "El archivo aliases no tiene suficientes palabras.";
-                log.error(mensaje);
-                throw new IOException(mensaje);
-            }
-
-            Random random = new Random();
-            for (int i = 0; i < 3; i++) {
-                int index = random.nextInt(aliases.size());
-                alias+=aliases.get(index)+".";
-            }
-            alias = alias.substring(0,alias.length()-1);
-
-        } catch (IOException e) {
-            log.error(e.getMessage());
-            alias = "perro-gato-liebre";
-        }
-        return alias;
-    }
-
-
-    public RegistrationResponseDTO mapToRegistrationResponseDto(User user){
+    public RegistrationResponseDTO mapToRegistrationResponseDto(User user, AccountRequestInitDTO initAccount){
         RegistrationResponseDTO response = null;
         if (user != null){
             response = new RegistrationResponseDTO();
@@ -167,9 +170,9 @@ public class UserService {
             response.setLastname(user.getLastname());
             response.setDni(user.getDni());
             response.setEmail(user.getEmail());
-            response.setAlias(user.getAlias());
+            response.setAlias(initAccount.getAlias());
             response.setPhone(user.getPhone());
-            response.setCvu(user.getCvu());
+            response.setCvu(initAccount.getCvu());
         }
         return response;
     }
@@ -183,9 +186,7 @@ public class UserService {
             response.setLastname(user.getLastname());
             response.setDni(user.getDni());
             response.setEmail(user.getEmail());
-            response.setAlias(user.getAlias());
             response.setPhone(user.getPhone());
-            response.setCvu(user.getCvu());
             response.setPassword(user.getPassword());
 
             if(!user.getRoles().isEmpty()){
@@ -197,5 +198,21 @@ public class UserService {
             }
         }
         return response;
+    }
+
+    public User mapToEntity(UserRequestDTO requestDTO){
+        User user = null;
+        if(requestDTO != null){
+            user = new User();
+            user.setId(requestDTO.getId());
+            user.setName(requestDTO.getName());
+            user.setLastname(requestDTO.getLastname());
+            user.setDni(requestDTO.getDni());
+            user.setEmail(requestDTO.getEmail());
+            user.setPassword(requestDTO.getPassword());
+            user.setPhone(requestDTO.getPhone());
+
+        }
+        return user;
     }
 }

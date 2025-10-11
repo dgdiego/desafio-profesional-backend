@@ -3,6 +3,7 @@ package dgdiego_digital_money.account_service.controller;
 import com.netflix.discovery.DiscoveryClient;
 import dgdiego_digital_money.account_service.entity.domian.Transaction;
 import dgdiego_digital_money.account_service.entity.domian.TransactionType;
+import dgdiego_digital_money.account_service.entity.dto.AccountRequestInitDTO;
 import dgdiego_digital_money.account_service.repository.ITransactionRepository;
 import dgdiego_digital_money.account_service.service.implementation.AccountService;
 import dgdiego_digital_money.account_service.service.implementation.PermissionService;
@@ -55,7 +56,12 @@ public class TransactionControllerTest {
         transactionRepository.deleteAll();
 
         try {
-            accountId = accountService.create(1L);
+            AccountRequestInitDTO request = new AccountRequestInitDTO();
+            request.setUserId(1L);
+            request.setAlias("test.alias");
+            request.setCvu("1234567890123456789012");
+
+            accountId = accountService.create(request);
         } catch (IllegalArgumentException ex) {
             accountId = accountService.findByUserId(1L).getId();
         }
@@ -64,7 +70,7 @@ public class TransactionControllerTest {
 
         for (int i = 0; i < 6; i++) {
             Transaction tx = new Transaction();
-            tx.setAccount(accountService.findById(accountId));
+            tx.setAccount(accountService.findById(accountId)); // devuelve la entidad completa si ahora findById retorna DTO, ajustar si es necesario
             tx.setAmount(100.0 + i);
             tx.setType(TransactionType.DEBIT);
             tx.setDateTime(LocalDateTime.now().minusDays(i));

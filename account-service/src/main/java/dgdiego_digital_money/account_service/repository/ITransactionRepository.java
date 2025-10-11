@@ -16,4 +16,9 @@ public interface ITransactionRepository extends JpaRepository<Transaction,Long> 
     List<Transaction> findByAccountIdOrderByDateTimeDesc(Long accountId, Pageable pageable);
 
     List<Transaction> findByAccountIdOrderByDateTimeDesc(Long accountId);
+
+    @Query("SELECT DISTINCT t.relatedAccount FROM Transaction t " +
+            "WHERE t.account.id = :accountId AND t.relatedAccount IS NOT NULL " +
+            "ORDER BY t.dateTime DESC")
+    List<Account> findLastRecipientsByAccountId(@Param("accountId") Long accountId, Pageable pageable);
 }

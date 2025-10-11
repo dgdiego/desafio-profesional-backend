@@ -1,6 +1,9 @@
 package dgdiego_digital_money.account_service.controller;
 
 import dgdiego_digital_money.account_service.entity.domian.Transaction;
+import dgdiego_digital_money.account_service.entity.dto.AccountRequestDTO;
+import dgdiego_digital_money.account_service.entity.dto.AccountRequestInitDTO;
+import dgdiego_digital_money.account_service.entity.dto.AccountResponseDTO;
 import dgdiego_digital_money.account_service.entity.dto.TransactionDto;
 import dgdiego_digital_money.account_service.service.implementation.AccountService;
 import dgdiego_digital_money.account_service.service.implementation.TransactionService;
@@ -36,8 +39,8 @@ public class AccountController {
     @PostMapping(path = "/create")
     @Operation(summary = "Crear cuenta", description = "Crear cuenta en la aplicación")
     @Hidden
-    public ResponseEntity<Long> register(@RequestBody Long userId) {
-        return  ResponseEntity.ok(accountService.create(userId));
+    public ResponseEntity<Long> register(@RequestBody AccountRequestInitDTO data) {
+        return  ResponseEntity.ok(accountService.create(data));
     }
 
     @GetMapping(path = "/{id}")
@@ -49,12 +52,24 @@ public class AccountController {
             description = "JWT Bearer token",
             schema = @Schema(type = "string", example = "Bearer eyJhbGciOiJIUzI1NiJ9...")
     )
-    public ResponseEntity<Map<String,Double>> balanceDashboard(@PathVariable Long id) {
-        Double balance = accountService.getBalance(id);
+    public ResponseEntity<AccountResponseDTO> balanceDashboard(@PathVariable Long id) {
+        return ResponseEntity.ok(accountService.mapToResponseDto(accountService.findById(id)));
+    }
 
-        Map<String, Double> response = new HashMap<>();
-        response.put("balance", balance);
-
-        return ResponseEntity.ok(response);
+    @PatchMapping(path = "/{id}")
+    @Operation(summary = "Actualizar", description = "Actualizar el alias de la cuenta")
+    @Parameter(
+            name = "Authorization",
+            in = ParameterIn.HEADER,
+            required = true,
+            description = "JWT Bearer token",
+            schema = @Schema(type = "string", example = "Bearer eyJhbGciOiJIUzI1NiJ9...")
+    )
+    public ResponseEntity<AccountResponseDTO> update(@PathVariable Long id, @Valid @RequestBody AccountRequestDTO requestDto) {
+        requestDto.setId(id);
+        return ResponseEntity.ok(
+                accountService.mapToResponseDto(
+                        accountService.update(
+                                accountService.mapToEntity(requestDto))));
     }
 }

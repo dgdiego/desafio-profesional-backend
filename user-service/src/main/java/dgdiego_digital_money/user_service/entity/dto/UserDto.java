@@ -16,8 +16,6 @@ public class UserDto {
     private String email;
     private String dni;
     private String phone;
-    private String alias;
-    private String cvu;
     private String password;
 
     private List<RolDto> roles;

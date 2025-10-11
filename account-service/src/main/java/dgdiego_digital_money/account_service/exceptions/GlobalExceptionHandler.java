@@ -26,6 +26,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<String>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(InsufficientFundsException.class)
+    public ResponseEntity<String> handleInsufficientFundsException(InsufficientFundsException ex) {
+        return new ResponseEntity<String>(ex.getMessage(), HttpStatus.GONE);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();

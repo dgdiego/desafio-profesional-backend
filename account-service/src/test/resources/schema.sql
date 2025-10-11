@@ -6,7 +6,9 @@ DROP TABLE IF EXISTS accounts;
 CREATE TABLE accounts (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
-    balance DOUBLE NOT NULL
+    balance DOUBLE NOT NULL,
+    alias VARCHAR(150),
+    cvu VARCHAR(30)
 );
 
 -- Tabla CARDS

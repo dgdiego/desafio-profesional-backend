@@ -24,6 +24,11 @@ public class TransferenceCreateDto {
     private String detail;
 
     @NotNull
+    private String origin;
+
+    @NotNull
     private String destination;
+
+
 
 }

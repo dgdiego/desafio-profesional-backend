@@ -4,11 +4,13 @@ package dgdiego_digital_money.account_service.integration;
 import dgdiego_digital_money.account_service.entity.domian.Account;
 import dgdiego_digital_money.account_service.entity.domian.Card;
 import dgdiego_digital_money.account_service.entity.domian.CardType;
+import dgdiego_digital_money.account_service.entity.dto.AccountRequestInitDTO;
 import dgdiego_digital_money.account_service.entity.dto.CardCreateDto;
 import dgdiego_digital_money.account_service.repository.ICardRepository;
 import dgdiego_digital_money.account_service.service.implementation.AccountService;
 import dgdiego_digital_money.account_service.service.implementation.CardService;
 import dgdiego_digital_money.account_service.service.implementation.PermissionService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -44,6 +46,20 @@ class CardServiceIntegrationTest {
     @MockBean
     private PermissionService permissionService; // 🔹 mock en test de integración
 
+    @BeforeEach
+    void setUp() {
+        cardRepository.deleteAll();
+    }
+
+    private Long createTestAccount(Long userId) {
+        AccountRequestInitDTO request = new AccountRequestInitDTO();
+        request.setUserId(userId);
+        request.setAlias("alias." + userId);
+        request.setCvu(String.format("%022d", userId)); // cvu de prueba
+
+        return accountService.create(request);
+    }
+
     @Test
     void delete_ShouldRemoveCard() {
 
@@ -51,8 +67,7 @@ class CardServiceIntegrationTest {
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         // 1. Crear una cuenta real
-        Long userId = 99L;
-        Long accountId = accountService.create(userId);
+        Long accountId = createTestAccount(99L);
         Account account = accountService.findById(accountId);
 
         // 2. Crear y guardar una tarjeta asociada
@@ -61,7 +76,7 @@ class CardServiceIntegrationTest {
                 .type(CardType.DEBIT)
                 .expirationDate(LocalDate.now().plusYears(2))
                 .account(account)
-                .accountId(accountId) // 👈 importante: usar accountId
+                .accountId(accountId)
                 .build();
 
         card = cardRepository.save(card);
@@ -79,9 +94,7 @@ class CardServiceIntegrationTest {
     @Test
     void getFromId_ShouldReturnCard() {
         // 1. Crear una cuenta real
-        Long userId = 100L;
-        Long accountId = accountService.create(userId);
-
+        Long accountId = createTestAccount(100L);
         Account account = accountService.findById(accountId);
 
         // 2. Crear y guardar una tarjeta asociada
@@ -109,8 +122,7 @@ class CardServiceIntegrationTest {
     @Test
     void createAndGetFromId_ShouldWorkCorrectly() {
         // 1. Crear una cuenta real
-        Long userId = 200L;
-        Long accountId = accountService.create(userId);
+        Long accountId = createTestAccount(200L);
 
         // 2. Crear DTO de tarjeta
         CardCreateDto cardDto = CardCreateDto.builder()
@@ -121,17 +133,16 @@ class CardServiceIntegrationTest {
 
         // 3. Usar el servicio para crear la tarjeta
         Card createdCard = cardService.create(cardDto, accountId);
-        createdCard.setAccountId(accountId);
 
         // 4. Recuperar la tarjeta con el servicio
-        Card foundCard = cardService.getFromId(createdCard.getId());
+        Card foundCard = cardService.findById(createdCard.getId());
 
         // 5. Verificar datos
         assertThat(foundCard).isNotNull();
         assertThat(foundCard.getId()).isEqualTo(createdCard.getId());
         assertThat(foundCard.getNumber()).isEqualTo("1111222233334444");
         assertThat(foundCard.getType()).isEqualTo(CardType.CREDIT);
-        assertThat(foundCard.getAccountId()).isEqualTo(accountId);
+        assertThat(foundCard.getAccount().getId()).isEqualTo(accountId);
     }
 }
 
