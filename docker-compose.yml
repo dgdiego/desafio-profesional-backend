@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./config/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 5s
+      retries: 10
+      timeout: 5s
+    networks:
+      - dgmoney-net
+
+  eureka-server:
+    build: ./eureka-service
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - dgmoney-net
+
+  accounts-service:
+    build: ./account-service
+    container_name: accounts-service
+    ports:
+      - "8084:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - dgmoney-net
+
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    ports:
+      - "8082:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - dgmoney-net
+
+  users-service:
+    build: ./user-service
+    container_name: users-service
+    ports:
+      - "8083:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - dgmoney-net
+
+  gateway:
+    build: ./gateway-service
+    container_name: gateway-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+    depends_on:
+      eureka-server:
+        condition: service_started
+      accounts-service:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      users-service:
+        condition: service_started
+    networks:
+      - dgmoney-net
+
+networks:
+  dgmoney-net:
+    driver: bridge
+

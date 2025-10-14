@@ -57,8 +57,8 @@ server:
 eureka:
   client:
     serviceUrl:
-      #defaultZone: http://eureka-service:8761/eureka/
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+      #defaultZone: http://localhost:8761/eureka/
 
 #TOKENS
 jwt:
