@@ -12,7 +12,7 @@ perro
 gato
 caballo
 vaca
-león
+leon
 tigre
 elefante
 conejo
@@ -24,7 +24,7 @@ pino
 cactus
 lavanda
 helecho
-orquídea
+orquidea
 sauce
 aloe
 palmera

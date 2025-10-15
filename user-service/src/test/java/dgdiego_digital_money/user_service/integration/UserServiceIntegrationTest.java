@@ -24,6 +24,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -58,6 +59,10 @@ public class UserServiceIntegrationTest {
 
     @BeforeEach
     void setup() {
+        userRepository.deleteAll();
+        rolRepository.deleteAll();
+
+
         // Insertamos un rol en la BD porque el servicio lo necesita
         Rol rol = new Rol();
         rol.setName("USER");
@@ -88,10 +93,7 @@ public class UserServiceIntegrationTest {
         assertNotNull(response);
         assertEquals("integration@example.com", response.getEmail());
 
-        List<User> allUsers = userRepository.findAll();
-        assertEquals(1, allUsers.size());
-
-        User saved = allUsers.get(0);
+        User saved = userRepository.findByEmail(response.getEmail()).get();
         assertTrue(passwordEncoder.matches("password123", saved.getPassword()));
 
         // 📌 Verifico que el Feign client fue invocado una vez

@@ -26,16 +26,17 @@ public class AccountService implements IAccountService {
     @Autowired
     private IFeingAccountRepository feingAccountRepository;
 
+    private static final SecureRandom random = new SecureRandom();
+
     @Override
     public Long create(AccountRequestInitDTO data) {
         return feingAccountRepository.create(data);
     }
 
     public String generateCvu(){
-        SecureRandom random = new SecureRandom();
-        return String.valueOf(
-                (long) (Math.pow(10, 21) + random.nextDouble() * (Math.pow(10, 22) - Math.pow(10, 21) - 1))
-        );
+        long timePart = System.currentTimeMillis(); // 13 dígitos
+        long randomPart = (long) (random.nextDouble() * 1_000_000_000L); // 9 dígitos
+        return String.format("%013d%09d", timePart, randomPart); // total 22 dígitos
     }
 
     public String generateAlias(){

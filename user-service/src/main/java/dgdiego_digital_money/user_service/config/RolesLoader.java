@@ -23,7 +23,7 @@ public class RolesLoader implements ApplicationRunner {
      */
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        rolRepository.deleteAll();
+        //rolRepository.deleteAll();
 
         Rol adminRol = Rol.builder()
                 .name("ADMIN")
