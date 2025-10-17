@@ -2,6 +2,13 @@
 
 ¡Bienvenido al proyecto de especialización en Backend! Este repositorio contiene la implementación de una billetera virtual, desarrollada utilizando una arquitectura de microservicios para garantizar la escalabilidad y el mantenimiento.
 
+# ⚙ Deploy y ejecución
+1) Descargar todo el proyecto.
+2) En postman importar digital-money.postman_collection y Digital-Money-House.postman_environment (ubicados en la raíz del proyecto).
+3) Levantar utilizando docker: docker compose up
+4) Luego de que estén todos los servicios en funcionamiento, en postman, correr la colección "Load data". En esta colección se se registran dos usuarios, se realiza el login del primero, crea una tarjeta, se realizan dos depósitos de dinero con tarjeta, posteriormente se realizan dos transferencias para la segunda cuenta creada (utilizando aliases y cvu) y por último se realiza un listado de la actividad de la cuenta.
+5) Para bajar el proyecto: docker compose down -v
+
 # 🚀 Arquitectura y Tecnologías
 La base de este proyecto es una arquitectura de microservicios, donde cada funcionalidad clave se representa por un servicio pequeño y autónomo. Esto nos permite desarrollar, desplegar y escalar cada componente de manera independiente.
 
@@ -92,10 +99,20 @@ Endpoint Historial de movimientos de la cuenta (GET /accounts/{ID}/transactions/
 
 Detalle de una transacción específica (GET /accounts/{ID}/transactions/{ID-transaction})
 
-Ingreso/Depósito de dinero a la cuenta (POST /accounts/{ID}/transferences)
+Ingreso/Depósito de dinero a la cuenta (POST /accounts/{ID}/deposits)
 
-# 👨‍🚀 Postman Collection
-En la raíz del proyecto está la colección para importar a postman: digital-money.postman_collection
+-> Sprint 4: Transferir dinero
+
+Objetivo: Transferir dinero entre cuentas
+
+Funcionalidades: 
+
+Transferir dinero de una cuenta a otra (POST /accounts/{ID}/transferences)
+
+Obtener los últimos destinatarios (GET /accounts/{ID}/transferences)
+
+# 👨‍🚀 Postman Collection & Enviornment
+En la raíz del proyecto está la colección y el ambiente para importar a postman: digital-money.postman_collection | Digital-Money-House.postman_environment
 
 # 📃 Docuentación en Swagger
 Debe estar corriendo Eureka + Gateway + el servicio
@@ -111,3 +128,6 @@ http://localhost:8081/accounts/swagger-ui/index.html
 
 # 🧪 Documentación de casos de prueba
 Link: https://docs.google.com/spreadsheets/d/1vFgbRadI4NBE_NcyxIBOFO04Y3TLUwkvEXbB3hmcCmQ/edit?usp=sharing
+
+# 🏡 Diagrama de arquitectura
+Link: https://docs.google.com/document/d/1y0bIvZVcNH_Me48gp3gjOHJFN3XaRJrxdY0UN3_b6-4/edit?usp=sharing
